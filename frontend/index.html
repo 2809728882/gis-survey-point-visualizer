@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>工程测绘 GIS 点位系统</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol/ol.css" />
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="side-panel" aria-label="工程测绘控制面板">
+        <header class="brand-block">
+          <div class="brand-mark">GIS</div>
+          <div>
+            <h1>工程测绘点位系统</h1>
+            <p>施工测量 · 放样辅助 · 进度核查</p>
+          </div>
+        </header>
+
+        <section class="stats-grid" aria-label="点位统计">
+          <div class="stat-tile">
+            <span>总点位</span>
+            <strong id="stat-total">0</strong>
+          </div>
+          <div class="stat-tile pending">
+            <span>待放样</span>
+            <strong id="stat-pending">0</strong>
+          </div>
+          <div class="stat-tile checking">
+            <span>复核中</span>
+            <strong id="stat-checking">0</strong>
+          </div>
+          <div class="stat-tile done">
+            <span>已完成</span>
+            <strong id="stat-done">0</strong>
+          </div>
+        </section>
+
+        <section class="control-section" aria-label="数据操作">
+          <div class="section-title">数据</div>
+          <div class="button-row">
+            <label class="icon-button primary" for="file-input" title="导入 CSV 或 JSON">
+              <i data-lucide="upload"></i>
+              <span>导入</span>
+            </label>
+            <input id="file-input" type="file" accept=".csv,.json,application/json,text/csv" hidden />
+            <button id="load-sample" class="icon-button" type="button" title="加载示例数据">
+              <i data-lucide="database"></i>
+              <span>示例</span>
+            </button>
+          </div>
+          <div class="button-row">
+            <button id="export-json" class="icon-button" type="button" title="导出 JSON">
+              <i data-lucide="file-json"></i>
+              <span>JSON</span>
+            </button>
+            <button id="export-csv" class="icon-button" type="button" title="导出 CSV">
+              <i data-lucide="file-spreadsheet"></i>
+              <span>CSV</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="control-section" aria-label="地图工具">
+          <div class="section-title">工具</div>
+          <div class="button-row">
+            <button id="add-point-toggle" class="icon-button" type="button" aria-pressed="false" title="新增测点">
+              <i data-lucide="map-pin-plus"></i>
+              <span>点位</span>
+            </button>
+            <button id="draw-circle" class="icon-button" type="button" aria-pressed="false" title="绘制圆形范围">
+              <i data-lucide="circle-dot"></i>
+              <span>圆形</span>
+            </button>
+            <button id="draw-polygon" class="icon-button" type="button" aria-pressed="false" title="绘制多边形范围">
+              <i data-lucide="pentagon"></i>
+              <span>多边形</span>
+            </button>
+          </div>
+          <div class="button-row">
+            <button id="clear-ranges" class="icon-button" type="button" title="清除范围">
+              <i data-lucide="eraser"></i>
+              <span>范围</span>
+            </button>
+            <button id="clear-points" class="icon-button danger" type="button" title="清空当前点位">
+              <i data-lucide="trash-2"></i>
+              <span>点位</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="control-section" aria-label="图层与筛选">
+          <div class="section-title">图层</div>
+          <label class="field-label" for="base-layer">底图</label>
+          <select id="base-layer">
+            <option value="amap">高德标准（国内）</option>
+            <option value="amapImagery">高德影像（国内）</option>
+            <option value="osm">OpenStreetMap</option>
+            <option value="imagery">Esri 卫星影像</option>
+            <option value="terrain">地形参考</option>
+          </select>
+
+          <label class="field-label" for="status-filter">状态</label>
+          <select id="status-filter">
+            <option value="all">全部</option>
+            <option value="pending">待放样</option>
+            <option value="checking">复核中</option>
+            <option value="done">已完成</option>
+            <option value="risk">风险点</option>
+          </select>
+
+          <label class="field-label" for="search-input">检索</label>
+          <input id="search-input" type="search" placeholder="编号 / 名称 / 备注" />
+        </section>
+
+        <section class="control-section" aria-label="位置定位">
+          <div class="section-title">定位</div>
+          <label class="field-label" for="place-search-input">地名搜索</label>
+          <div class="search-action-row">
+            <input id="place-search-input" type="search" placeholder="地名 / 经度,纬度" />
+            <button id="place-search" class="icon-button" type="button" title="搜索并跳转">
+              <i data-lucide="search"></i>
+              <span>跳转</span>
+            </button>
+          </div>
+          <button id="locate-me" class="icon-button primary full-width" type="button" title="定位到当前位置">
+            <i data-lucide="locate-fixed"></i>
+            <span>当前位置</span>
+          </button>
+          <div id="location-message" class="helper-text" aria-live="polite"></div>
+        </section>
+
+        <section class="control-section selected-section" aria-label="选中点位">
+          <div class="section-title">当前点位</div>
+          <div id="selected-empty" class="empty-state">未选择</div>
+          <div id="selected-detail" class="selected-detail" hidden>
+            <strong id="selected-name">-</strong>
+            <span id="selected-coord">-</span>
+            <label class="field-label" for="selected-status">施工状态</label>
+            <select id="selected-status">
+              <option value="pending">待放样</option>
+              <option value="checking">复核中</option>
+              <option value="done">已完成</option>
+              <option value="risk">风险点</option>
+            </select>
+            <button id="locate-selected" class="icon-button" type="button" title="定位到当前点">
+              <i data-lucide="crosshair"></i>
+              <span>定位</span>
+            </button>
+          </div>
+        </section>
+      </aside>
+
+      <section class="map-workspace">
+        <div id="map" class="map" aria-label="工程测绘地图"></div>
+        <div id="popup" class="map-popup" hidden></div>
+        <div class="range-chip" id="range-summary">范围 0</div>
+        <div class="table-panel">
+          <div class="table-header">
+            <strong>测点清单</strong>
+            <span id="visible-count">0 条</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>编号</th>
+                  <th>名称</th>
+                  <th>状态</th>
+                  <th>高程</th>
+                </tr>
+              </thead>
+              <tbody id="points-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/ol/dist/ol.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="./src/app.js"></script>
+  </body>
+</html>

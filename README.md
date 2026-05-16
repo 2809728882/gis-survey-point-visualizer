@@ -92,28 +92,6 @@ python .\scripts\survey_data_converter.py `
 
 国内互联网环境下，Demo 默认使用高德标准底图，并已在前端对高德底图执行 WGS84 ⇄ GCJ-02 显示纠偏。高德、腾讯等国内互联网地图通常存在 GCJ-02 坐标偏移，测绘成果若为 CGCS2000 或地方施工坐标，正式叠加前仍需根据项目参数做坐标转换。详见 `docs/map-sources.md`。
 
-## GitHub 开源建议
-
-推荐仓库名：
-
-```text
-gis-survey-point-visualizer
-```
-
-推荐仓库描述：
-
-```text
-施工测量点位可视化 Demo，包含 OpenLayers 地图展示、CSV 数据导入、国内底图纠偏和 Python 数据转换脚本。
-```
-
-建议发布内容：
-
-- `main` 分支保留可运行 Demo。
-- `docs/` 保留完整项目任务书和部署说明。
-- `frontend/` 展示可视化工作台。
-- `scripts/` 展示测绘数据清洗、转换和导出能力。
-- README 截图可在 Demo 跑通后补充。
-
 ## 后续路线
 
 - 接入 GeoJSON、DXF、KML、SHP 等工程数据格式。

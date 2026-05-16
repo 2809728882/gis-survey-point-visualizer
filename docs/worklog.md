@@ -7,6 +7,7 @@
 已完成：
 
 - `README.md`：开源项目说明、快速启动、数据字段、GitHub 发布建议。
+- `README.md`：已把项目描述改成更自然的作品集说明，弱化模板化语气。
 - `docs/project-plan.md`：完整项目任务书。
 - `docs/demo-flow.md`：施工/测量岗适配的演示流程。
 - `docs/deployment.md`：本地、局域网、Nginx 和数据转换部署说明。
